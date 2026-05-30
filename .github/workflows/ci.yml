@@ -8,6 +8,7 @@ on:
 jobs:
   windows:
     runs-on: windows-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -16,25 +17,40 @@ jobs:
         with:
           arch: x64
 
-      - name: Use preinstalled vcpkg and pin the manifest baseline
+      - name: Show toolchain versions
         shell: pwsh
         run: |
-          $vcpkg = $env:VCPKG_INSTALLATION_ROOT
-          if (-not $vcpkg) { throw "VCPKG_INSTALLATION_ROOT not set on runner" }
-          "VCPKG_ROOT=$vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          $sha = (git -C $vcpkg rev-parse HEAD).Trim()
-          (Get-Content vcpkg.json) `
-            -replace 'CHANGE_ME_TO_A_REAL_VCPKG_BASELINE_COMMIT', $sha |
-            Set-Content vcpkg.json -Encoding utf8
-          Write-Host "Pinned vcpkg builtin-baseline to $sha"
+          Write-Host "VCPKG_INSTALLATION_ROOT = $env:VCPKG_INSTALLATION_ROOT"
+          cmake --version
+          ninja --version
+          cl 2>&1 | Select-Object -First 1
+
+      - name: Pin vcpkg manifest baseline
+        shell: pwsh
+        run: |
+          if (-not $env:VCPKG_INSTALLATION_ROOT) {
+            throw "VCPKG_INSTALLATION_ROOT is not set on this runner"
+          }
+          $sha = (git -C $env:VCPKG_INSTALLATION_ROOT rev-parse HEAD).Trim()
+          Write-Host "Using vcpkg HEAD $sha"
+          $text = Get-Content vcpkg.json -Raw
+          $text = $text -replace 'CHANGE_ME_TO_A_REAL_VCPKG_BASELINE_COMMIT', $sha
+          Set-Content -Path vcpkg.json -Value $text -Encoding utf8 -NoNewline
+          Write-Host "--- vcpkg.json ---"
+          Get-Content vcpkg.json
 
       - name: Configure (CMake + vcpkg)
-        run: cmake --preset vcpkg
+        shell: pwsh
+        run: |
+          $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
+          cmake --preset vcpkg
 
       - name: Build (Release)
+        shell: pwsh
         run: cmake --build build --config Release --parallel
 
       - name: Run tests
+        shell: pwsh
         run: ctest --test-dir build -C Release --output-on-failure
 
       - name: Stage binaries
