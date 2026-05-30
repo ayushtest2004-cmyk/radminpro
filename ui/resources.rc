@@ -1,0 +1,202 @@
+// radminpro resources: dialog templates, menus, app manifest.
+#include <windows.h>
+#include <commctrl.h>
+#include "resource.h"
+
+// ----- App manifest (visual styles via Common Controls 6.0) ----------------
+1 24 "radminpro.manifest"
+
+// ===========================================================================
+// Client - Connect dialog
+// ===========================================================================
+IDD_CONNECT DIALOGEX 0, 0, 330, 215
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "radminpro - Connect to host"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "&Host (IP / DNS):", -1, 10, 14, 80, 10
+    EDITTEXT        IDC_CONN_HOST, 95, 12, 225, 14, ES_AUTOHSCROLL
+
+    LTEXT           "&Port:", -1, 10, 34, 80, 10
+    EDITTEXT        IDC_CONN_PORT, 95, 32, 50, 14, ES_AUTOHSCROLL | ES_NUMBER
+    AUTOCHECKBOX    "Use default (4899)", IDC_CONN_DEFAULT_PORT, 155, 34, 95, 10
+
+    LTEXT           "&User:", -1, 10, 54, 80, 10
+    EDITTEXT        IDC_CONN_USER, 95, 52, 225, 14, ES_AUTOHSCROLL
+
+    LTEXT           "Pass&word:", -1, 10, 74, 80, 10
+    EDITTEXT        IDC_CONN_PASS, 95, 72, 225, 14, ES_AUTOHSCROLL | ES_PASSWORD
+
+    LTEXT           "Server pi&n (SHA-256):", -1, 10, 94, 80, 10
+    EDITTEXT        IDC_CONN_PIN, 95, 92, 225, 14, ES_AUTOHSCROLL
+
+    LTEXT           "C&A file (optional):", -1, 10, 114, 80, 10
+    EDITTEXT        IDC_CONN_CA, 95, 112, 195, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "...", IDC_CONN_CA_BROWSE, 295, 112, 25, 14
+
+    GROUPBOX        "Mode", -1, 10, 134, 310, 40
+    AUTORADIOBUTTON "&View only",          IDC_CONN_VIEW,    20, 150, 65, 10, WS_GROUP | WS_TABSTOP
+    AUTORADIOBUTTON "Full &control",       IDC_CONN_CONTROL, 95, 150, 70, 10
+    AUTORADIOBUTTON "&File transfer only", IDC_CONN_FILES,   175, 150, 90, 10
+
+    DEFPUSHBUTTON   "&Connect", IDOK, 215, 190, 50, 18
+    PUSHBUTTON      "Cancel",   IDCANCEL, 270, 190, 50, 18
+END
+
+// ===========================================================================
+// Server - Options host (Tab Control container)
+// ===========================================================================
+IDD_OPTIONS DIALOGEX 0, 0, 380, 290
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "radminpro Server - Options"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    CONTROL         "", IDC_OPT_TAB, "SysTabControl32", WS_TABSTOP, 5, 5, 370, 250
+    DEFPUSHBUTTON   "&OK", IDOK, 215, 265, 50, 18
+    PUSHBUTTON      "Cancel", IDCANCEL, 270, 265, 50, 18
+END
+
+// ----- Options tab: General ------------------------------------------------
+IDD_OPT_GENERAL DIALOGEX 0, 0, 358, 230
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Bind address:", -1, 10, 14, 80, 10
+    EDITTEXT        IDC_OPT_BIND, 95, 12, 120, 14, ES_AUTOHSCROLL
+
+    LTEXT           "Port:", -1, 10, 34, 80, 10
+    EDITTEXT        IDC_OPT_PORT, 95, 32, 50, 14, ES_AUTOHSCROLL | ES_NUMBER
+    AUTOCHECKBOX    "Use default (4899)", IDC_OPT_USE_DEFAULT, 155, 34, 95, 10
+
+    LTEXT           "Max sessions:", -1, 10, 54, 80, 10
+    EDITTEXT        IDC_OPT_MAX_SESS, 95, 52, 50, 14, ES_AUTOHSCROLL | ES_NUMBER
+
+    LTEXT           "Monitor index:", -1, 10, 74, 80, 10
+    EDITTEXT        IDC_OPT_MONITOR, 95, 72, 50, 14, ES_AUTOHSCROLL | ES_NUMBER
+
+    GROUPBOX        "TLS", -1, 5, 95, 348, 70
+    LTEXT           "Certificate (.crt):", -1, 15, 112, 80, 10
+    EDITTEXT        IDC_OPT_CERT, 100, 110, 215, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "...", IDC_OPT_CERT_BROWSE, 320, 110, 25, 14
+
+    LTEXT           "Private key (.key):", -1, 15, 134, 80, 10
+    EDITTEXT        IDC_OPT_KEY, 100, 132, 215, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "...", IDC_OPT_KEY_BROWSE, 320, 132, 25, 14
+END
+
+// ----- Options tab: IP Filter ---------------------------------------------
+IDD_OPT_FILTER DIALOGEX 0, 0, 358, 230
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Allowed subnets (CIDR). Connections from any other IP are dropped.", -1, 10, 8, 340, 10
+    LISTBOX         IDC_OPT_CIDR_LIST, 10, 24, 338, 140, LBS_NOTIFY | WS_VSCROLL | WS_TABSTOP | WS_BORDER
+
+    LTEXT           "New CIDR:", -1, 10, 176, 50, 10
+    EDITTEXT        IDC_OPT_CIDR_EDIT, 60, 174, 160, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "&Add", IDC_OPT_CIDR_ADD, 225, 174, 50, 14
+    PUSHBUTTON      "&Remove", IDC_OPT_CIDR_REMOVE, 280, 174, 65, 14
+END
+
+// ----- Options tab: Logging -----------------------------------------------
+IDD_OPT_LOGGING DIALOGEX 0, 0, 358, 230
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Audit log file (CSV):", -1, 10, 14, 100, 10
+    EDITTEXT        IDC_OPT_AUDIT, 110, 12, 200, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "...", IDC_OPT_AUDIT_BROWSE, 315, 12, 25, 14
+
+    LTEXT           "File-transfer sandbox root:", -1, 10, 34, 100, 10
+    EDITTEXT        IDC_OPT_FILE_ROOT, 110, 32, 200, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "...", IDC_OPT_ROOT_BROWSE, 315, 32, 25, 14
+
+    LTEXT           "The audit log is append-only and tamper-evident (hash-chained per row, ACL-restricted to SYSTEM + Administrators + the running user).", -1, 10, 70, 340, 30
+END
+
+// ===========================================================================
+// Server - Users + Rights dialog
+// ===========================================================================
+IDD_USERS DIALOGEX 0, 0, 340, 340
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "radminpro Server - Users"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Radmin Users:", -1, 10, 8, 80, 10
+    CONTROL         "", IDC_USERS_LIST, "SysListView32",
+                    LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,
+                    10, 22, 320, 90
+    PUSHBUTTON      "&Add User...",   IDC_USERS_ADD,    218, 116, 55, 16
+    PUSHBUTTON      "&Remove User",   IDC_USERS_REMOVE, 277, 116, 55, 16
+
+    GROUPBOX        "Rights", IDC_USERS_RIGHTS_GROUP, 10, 140, 320, 160
+    AUTOCHECKBOX    "All Access",            IDC_RIGHT_ALL,       20, 158, 130, 10, WS_TABSTOP
+    AUTOCHECKBOX    "Remote Screen Control", IDC_RIGHT_CONTROL,   20, 174, 130, 10
+    AUTOCHECKBOX    "Remote Screen View",    IDC_RIGHT_VIEW,      20, 190, 130, 10
+    AUTOCHECKBOX    "Telnet",                IDC_RIGHT_TELNET,    20, 206, 130, 10
+    AUTOCHECKBOX    "File Transfer",         IDC_RIGHT_FILE,      20, 222, 130, 10
+    AUTOCHECKBOX    "Redirect",              IDC_RIGHT_REDIRECT, 175, 158, 130, 10
+    AUTOCHECKBOX    "Chat",                  IDC_RIGHT_CHAT,     175, 174, 130, 10
+    AUTOCHECKBOX    "Voice Chat",            IDC_RIGHT_VOICE,    175, 190, 130, 10
+    AUTOCHECKBOX    "Send Message",          IDC_RIGHT_MSG,      175, 206, 130, 10
+    AUTOCHECKBOX    "Shutdown",              IDC_RIGHT_SHUTDOWN, 175, 222, 130, 10
+
+    DEFPUSHBUTTON   "&OK",     IDOK,     228, 315, 50, 18
+    PUSHBUTTON      "Cancel", IDCANCEL,  282, 315, 50, 18
+END
+
+// ===========================================================================
+// Server - Add User sub-dialog
+// ===========================================================================
+IDD_ADD_USER DIALOGEX 0, 0, 280, 140
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add Radmin User"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "Username:",  -1, 10, 14, 70, 10
+    EDITTEXT        IDC_ADD_USERNAME, 85, 12, 180, 14, ES_AUTOHSCROLL
+
+    LTEXT           "Password:",  -1, 10, 38, 70, 10
+    EDITTEXT        IDC_ADD_PASS1,    85, 36, 180, 14, ES_AUTOHSCROLL | ES_PASSWORD
+
+    LTEXT           "Confirm:",   -1, 10, 62, 70, 10
+    EDITTEXT        IDC_ADD_PASS2,    85, 60, 180, 14, ES_AUTOHSCROLL | ES_PASSWORD
+
+    LTEXT           "Stored as a salted Argon2id hash. The plaintext is never persisted and never crosses the wire un-encrypted.",
+                    -1, 10, 84, 260, 24
+
+    DEFPUSHBUTTON   "&OK",     IDOK,     165, 116, 50, 18
+    PUSHBUTTON      "Cancel", IDCANCEL,  220, 116, 50, 18
+END
+
+// ===========================================================================
+// About dialog
+// ===========================================================================
+IDD_ABOUT DIALOGEX 0, 0, 240, 140
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About radminpro"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "radminpro",                                              -1, 10, 10, 220, 12
+    LTEXT           "Lightweight, hardened LAN remote-desktop tool.",         -1, 10, 26, 220, 10
+    LTEXT           "TLS 1.3 / Argon2id / DPAPI / DXGI capture / audit log.", -1, 10, 40, 220, 10
+    LTEXT           "Self-defined local users only. No AD dependency.",       -1, 10, 54, 220, 10
+    LTEXT           "(c) 2026",                                                -1, 10, 80, 220, 10
+    DEFPUSHBUTTON   "OK", IDOK, 95, 110, 50, 18
+END
+
+// ===========================================================================
+// System-tray right-click menu
+// ===========================================================================
+IDR_TRAY_MENU MENU
+BEGIN
+    POPUP "TrayMenu"
+    BEGIN
+        MENUITEM "&Options...",  IDM_TRAY_OPTIONS
+        MENUITEM "&Users...",    IDM_TRAY_USERS
+        MENUITEM SEPARATOR
+        MENUITEM "&About",       IDM_TRAY_ABOUT
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",        IDM_TRAY_EXIT
+    END
+END

@@ -43,7 +43,13 @@ public:
     // exit code.
     int run();
 
-    void stop() { running_.store(false); }
+    // Cleanly stop the accept loop from another thread (closes the listener
+    // socket so the blocked accept() returns immediately).
+    void stop();
+
+    // Serialize the current config back to plaintext key=value form (for the
+    // GUI to re-seal after Options/Users edits).
+    static std::string serialize(const ServerConfig& cfg);
 
 private:
     void session(std::unique_ptr<SocketTransport> t, PeerInfo peer);
@@ -52,6 +58,7 @@ private:
     std::shared_ptr<TlsContext> tls_;
     std::shared_ptr<SecurityManager> sec_;
     std::unique_ptr<AuditLogger> audit_;
+    TcpListener listener_;
     std::atomic<bool> running_{true};
     std::atomic<uint32_t> activeSessions_{0};
 };

@@ -105,24 +105,57 @@ add_library(rp_net STATIC
 target_link_libraries(rp_net PUBLIC rp_common rp_security PRIVATE ws2_32)
 
 # ---------------------------------------------------------------------------
+# rp_ui - native Win32 dialogs (Connect / Options / Users / Add User / About)
+# plus the system-tray app. Each exe also compiles ui/resources.rc directly
+# so the dialog templates + manifest end up in the .exe's resource table.
+# ---------------------------------------------------------------------------
+add_library(rp_ui STATIC
+  ui/WinUtil.cpp
+  ui/ConnectDialog.cpp
+  ui/OptionsDialog.cpp
+  ui/UsersDialog.cpp
+  ui/TrayApp.cpp
+)
+target_link_libraries(rp_ui
+  PUBLIC  rp_common rp_security rp_audit rp_media rp_net
+  PRIVATE user32 gdi32 comctl32 comdlg32 shell32 ole32
+)
+
+# ---------------------------------------------------------------------------
 # Executables
 # ---------------------------------------------------------------------------
+# Make sure the RC compiler can find resource.h and radminpro.manifest in ui/.
+set_source_files_properties(ui/resources.rc PROPERTIES
+  COMPILE_FLAGS "/I\"${CMAKE_CURRENT_SOURCE_DIR}/ui\""
+)
+
 add_executable(radmin_server
   server/PrivilegeManager.cpp
   server/ServerApp.cpp
   server/main.cpp
+  ui/resources.rc
 )
 target_link_libraries(radmin_server PRIVATE
-  rp_net rp_security rp_audit rp_media rp_common advapi32 shell32 user32
+  rp_ui rp_net rp_security rp_audit rp_media rp_common
+  advapi32 shell32 user32 comctl32 comdlg32
 )
+# Windows GUI subsystem -> no console window when double-clicked. The CRT entry
+# stays mainCRTStartup so int main(argc,argv) still works (and CLI mode behaves
+# correctly when launched from a cmd window).
+set_target_properties(radmin_server PROPERTIES WIN32_EXECUTABLE TRUE)
+target_link_options(radmin_server PRIVATE "/ENTRY:mainCRTStartup")
 
 add_executable(radmin_client
   client/ClientApp.cpp
   client/main.cpp
+  ui/resources.rc
 )
 target_link_libraries(radmin_client PRIVATE
-  rp_net rp_security rp_audit rp_media rp_common user32 gdi32
+  rp_ui rp_net rp_security rp_audit rp_media rp_common
+  user32 gdi32 comctl32 comdlg32 shell32
 )
+set_target_properties(radmin_client PROPERTIES WIN32_EXECUTABLE TRUE)
+target_link_options(radmin_client PRIVATE "/ENTRY:mainCRTStartup")
 
 install(TARGETS radmin_server radmin_client
   RUNTIME DESTINATION bin

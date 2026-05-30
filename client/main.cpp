@@ -12,6 +12,7 @@
 //
 #include "client/ClientApp.h"
 #include "common/Logger.h"
+#include "ui/ConnectDialog.h"
 
 #include <windows.h>
 
@@ -84,6 +85,15 @@ void usage() {
 } // namespace
 
 int main(int argc, char** argv) {
+    // Zero-args launch (e.g. double-click) -> Connect dialog -> viewer.
+    if (argc < 2) {
+        auto cfg = rp::showConnectDialog();
+        if (!cfg) return 0; // user cancelled
+        rp::ClientApp app(std::move(*cfg));
+        if (!app.connectAndAuth()) return 2;
+        return app.runViewer();
+    }
+
     Args a = parseArgs(argc, argv);
     if (a.sub.empty() || a.pos.empty()) {
         usage();

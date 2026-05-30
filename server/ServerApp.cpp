@@ -197,8 +197,7 @@ int ServerApp::run() {
     std::error_code ec;
     fs::create_directories(cfg_.fileRoot, ec);
 
-    TcpListener listener;
-    if (!listener.listen(cfg_.bindAddr, cfg_.port)) {
+    if (!listener_.listen(cfg_.bindAddr, cfg_.port)) {
         RP_LOG_ERROR("cannot listen on " + cfg_.bindAddr + ":" + std::to_string(cfg_.port));
         return 6;
     }
@@ -208,9 +207,10 @@ int ServerApp::run() {
 
     while (running_.load()) {
         PeerInfo peer;
-        socket_t fd = listener.accept(peer);
+        socket_t fd = listener_.accept(peer);
         if (fd == kInvalidSocket) {
-            if (running_.load()) RP_LOG_WARN("accept() failed");
+            if (!running_.load()) break; // clean stop() via close()
+            RP_LOG_WARN("accept() failed");
             continue;
         }
 
@@ -241,8 +241,33 @@ int ServerApp::run() {
         std::thread(&ServerApp::session, this, std::move(transport), peer).detach();
     }
 
-    listener.close();
+    listener_.close();
     return 0;
+}
+
+void ServerApp::stop() {
+    running_.store(false);
+    listener_.close(); // breaks the blocked accept() in run()
+}
+
+std::string ServerApp::serialize(const ServerConfig& cfg) {
+    std::ostringstream o;
+    o << "bind=" << cfg.bindAddr << "\n";
+    o << "port=" << cfg.port << "\n";
+    o << "monitor=" << cfg.monitor << "\n";
+    o << "allow_subnets=" << cfg.allowSubnets << "\n";
+    o << "tls_cert=" << cfg.tlsCert << "\n";
+    o << "tls_key=" << cfg.tlsKey << "\n";
+    if (!cfg.clientCa.empty()) o << "client_ca=" << cfg.clientCa << "\n";
+    o << "audit_csv=" << cfg.auditCsv << "\n";
+    o << "file_root=" << cfg.fileRoot << "\n";
+    o << "max_sessions=" << cfg.maxSessions << "\n";
+    for (const auto& u : cfg.users) {
+        if (u.username.empty() || u.argon2Hash.empty()) continue;
+        o << "user." << u.username << ".hash=" << u.argon2Hash << "\n";
+        o << "user." << u.username << ".rights=" << rightsToString(u.rights) << "\n";
+    }
+    return o.str();
 }
 
 // ---------------------------------------------------------------------------

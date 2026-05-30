@@ -10,6 +10,7 @@
 #include "security/DpapiSecret.h"
 #include "security/PasswordStore.h"
 #include "server/ServerApp.h"
+#include "ui/TrayApp.h"
 
 #include <windows.h>
 
@@ -101,11 +102,16 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
+    // No args -> GUI / tray mode. Default config sits next to the exe.
     if (argc < 2) {
-        std::cerr << "usage: radmin_server <config[.enc]>\n"
-                     "       radmin_server --hash-password\n"
-                     "       radmin_server --seal-config <plaintext> <out.enc>\n";
-        return 1;
+        wchar_t exePath[MAX_PATH];
+        DWORD n = GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+        if (n) {
+            wchar_t* slash = wcsrchr(exePath, L'\\');
+            if (slash) { *slash = L'\0'; SetCurrentDirectoryW(exePath); }
+        }
+        rp::TrayApp app("server.config.enc");
+        return app.run();
     }
 
     const std::string configPath = argv[1];
