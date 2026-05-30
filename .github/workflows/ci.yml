@@ -1,0 +1,53 @@
+name: build-and-test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Use preinstalled vcpkg and pin the manifest baseline
+        shell: pwsh
+        run: |
+          $vcpkg = $env:VCPKG_INSTALLATION_ROOT
+          if (-not $vcpkg) { throw "VCPKG_INSTALLATION_ROOT not set on runner" }
+          "VCPKG_ROOT=$vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $sha = (git -C $vcpkg rev-parse HEAD).Trim()
+          (Get-Content vcpkg.json) `
+            -replace 'CHANGE_ME_TO_A_REAL_VCPKG_BASELINE_COMMIT', $sha |
+            Set-Content vcpkg.json -Encoding utf8
+          Write-Host "Pinned vcpkg builtin-baseline to $sha"
+
+      - name: Configure (CMake + vcpkg)
+        run: cmake --preset vcpkg
+
+      - name: Build (Release)
+        run: cmake --build build --config Release --parallel
+
+      - name: Run tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Stage binaries
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Get-ChildItem -Recurse build -Include radmin_server.exe,radmin_client.exe |
+            ForEach-Object { Copy-Item $_.FullName dist\ }
+          Get-ChildItem dist
+
+      - name: Upload executables
+        uses: actions/upload-artifact@v4
+        with:
+          name: radminpro-windows-x64
+          path: dist/*.exe
+          if-no-files-found: error

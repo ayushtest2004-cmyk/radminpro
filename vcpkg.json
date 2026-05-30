@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "radminpro",
+  "version": "0.1.0",
+  "description": "Lightweight, hardened LAN remote-desktop tool (server/client) built to enterprise security standards.",
+  "homepage": "",
+  "dependencies": [
+    {
+      "name": "openssl",
+      "comment": "TLS 1.3 transport + EVP SHA-256 + CSPRNG. libssl/libcrypto."
+    },
+    {
+      "name": "argon2",
+      "comment": "Argon2id password hashing (phc-winner-argon2)."
+    }
+  ],
+  "builtin-baseline": "CHANGE_ME_TO_A_REAL_VCPKG_BASELINE_COMMIT",
+  "overrides": []
+}

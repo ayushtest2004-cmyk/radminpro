@@ -1,0 +1,27 @@
+# Build output
+/build/
+/out/
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.lib
+*.exp
+
+# vcpkg
+/vcpkg_installed/
+
+# Local secrets / runtime artifacts - MUST NOT be committed
+*.pem
+*.key
+*.pfx
+server.config.enc
+audit/*.csv
+*.log
+
+# IDE
+.vs/
+.vscode/
+*.user
+CMakeCache.txt
+CMakeFiles/

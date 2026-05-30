@@ -1,0 +1,45 @@
+# radminpro server configuration (PLAINTEXT TEMPLATE).
+#
+# Production flow:
+#   1. radmin_server --hash-password          # generate each user's Argon2id hash
+#   2. edit this file (subnets, users, cert paths)
+#   3. radmin_server --seal-config server.config server.config.enc
+#   4. securely delete the plaintext server.config
+#   5. radmin_server server.config.enc
+#
+# Lines starting with # or ; are comments. Format is key=value.
+
+# --- Network ---------------------------------------------------------------
+bind=0.0.0.0
+port=4899
+monitor=0
+
+# --- Anti-tampering: ONLY these LAN ranges may connect (fail-closed). -------
+# Connections from anything else are dropped before the TLS stack is touched.
+allow_subnets=192.168.1.0/24
+
+# --- TLS (data in transit). Generate with scripts/gen-cert.ps1 -------------
+tls_cert=server.crt
+tls_key=server.key
+# client_ca=clients-ca.crt        # uncomment to REQUIRE client certs (mutual TLS)
+
+# --- Audit trail + file-transfer sandbox -----------------------------------
+audit_csv=audit/radminpro_audit.csv
+file_root=fileshare
+
+# --- Limits ----------------------------------------------------------------
+max_sessions=8
+
+# --- Users (self-defined local accounts) -----------------------------------
+# Each user needs an Argon2id hash (NEVER a plaintext password).
+# Generate one with:  radmin_server --hash-password
+#
+# Rights (combine with | ):
+#   AllAccess | RemoteScreenView | RemoteScreenControl | FileTransfer |
+#   Chat | SendMessage | Shutdown | Redirect | Telnet | VoiceChat
+
+user.admin.hash=$argon2id$v=19$m=65536,t=3,p=1$REPLACE_THIS_SALT$REPLACE_THIS_HASH
+user.admin.rights=RemoteScreenControl|RemoteScreenView|FileTransfer
+
+user.viewer.hash=$argon2id$v=19$m=65536,t=3,p=1$REPLACE_THIS_SALT$REPLACE_THIS_HASH
+user.viewer.rights=RemoteScreenView
