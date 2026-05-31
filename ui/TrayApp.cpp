@@ -9,6 +9,7 @@
 #include "ui/resource.h"
 
 #include <windows.h>
+#include <objbase.h>     // CoInitializeEx / CoUninitialize / COINIT_*
 #include <shellapi.h>
 #include <commctrl.h>
 
