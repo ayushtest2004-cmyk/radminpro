@@ -143,7 +143,10 @@ target_link_libraries(radmin_server PRIVATE
 # stays mainCRTStartup so int main(argc,argv) still works (and CLI mode behaves
 # correctly when launched from a cmd window).
 set_target_properties(radmin_server PROPERTIES WIN32_EXECUTABLE TRUE)
-target_link_options(radmin_server PRIVATE "/ENTRY:mainCRTStartup")
+# /MANIFEST:NO -> don't let the linker generate its own manifest; ours is
+# embedded by the RC file (1 24 "radminpro.manifest"). Two manifests cause
+# CVTRES "duplicate resource".
+target_link_options(radmin_server PRIVATE "/ENTRY:mainCRTStartup" "/MANIFEST:NO")
 
 add_executable(radmin_client
   client/ClientApp.cpp
@@ -155,7 +158,7 @@ target_link_libraries(radmin_client PRIVATE
   user32 gdi32 comctl32 comdlg32 shell32
 )
 set_target_properties(radmin_client PROPERTIES WIN32_EXECUTABLE TRUE)
-target_link_options(radmin_client PRIVATE "/ENTRY:mainCRTStartup")
+target_link_options(radmin_client PRIVATE "/ENTRY:mainCRTStartup" "/MANIFEST:NO")
 
 install(TARGETS radmin_server radmin_client
   RUNTIME DESTINATION bin
